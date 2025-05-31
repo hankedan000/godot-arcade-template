@@ -1,0 +1,174 @@
+[gd_scene load_steps=8 format=3 uid="uid://snn0wy3tm564"]
+
+[ext_resource type="FontFile" path="res://Quantico30.tres" id="1_y1ncx"]
+[ext_resource type="PackedScene" uid="uid://b6xxoiaxx2b8u" path="res://addons/arcade/scenes/ui/control_panel/1or2player.tscn" id="2"]
+[ext_resource type="Texture2D" uid="uid://we8getbieyb6" path="res://player_panel/checked.png" id="2_gvbl5"]
+[ext_resource type="Texture2D" uid="uid://bj75dhnee6lyl" path="res://player_panel/unchecked.png" id="3_oioyn"]
+
+[sub_resource type="Theme" id="Theme_ya2l1"]
+Button/fonts/font = ExtResource("1_y1ncx")
+CheckBox/icons/checked = ExtResource("2_gvbl5")
+CheckBox/icons/checked_disabled = ExtResource("2_gvbl5")
+CheckBox/icons/unchecked = ExtResource("3_oioyn")
+CheckBox/icons/unchecked_disabled = ExtResource("3_oioyn")
+Label/fonts/font = ExtResource("1_y1ncx")
+
+[sub_resource type="GDScript" id="1"]
+script/source = "extends PanelContainer
+
+var GameSettings = preload(\"res://GameSettings.gd\")
+
+@onready var roundSlider = $VBoxContainer/rounds/HSlider
+@onready var boostEnable = $VBoxContainer/boost/CheckButton
+@onready var gunsEnable = $VBoxContainer/guns/CheckButton
+
+@export var arcade_mode = true
+
+signal game_start
+
+func _ready():
+	setArcadeMode(arcade_mode)
+
+func setArcadeMode(arcadeModeEnabled):
+	arcade_mode = arcadeModeEnabled
+	
+	$\"1or2player\".visible = arcade_mode
+	
+	$VBoxContainer/p1p2text.visible = arcade_mode
+	$VBoxContainer/buttons.visible = not arcade_mode
+
+func _input(event):
+	if arcade_mode and visible:
+		if event.is_action_released(\"p1_start\"):
+			_startGame(false)
+		elif event.is_action_released(\"p2_start\"):
+			_startGame(true)
+
+func _getGameSettings(isTwoPlayer):
+	var settings = GameSettings.new()
+	settings.isTwoPlayer = isTwoPlayer
+	settings.numberOfRounds = roundSlider.value
+	return settings
+
+func _on_start1P_pressed():
+	if visible:
+		_startGame(false)
+
+func _on_start2P_pressed():
+	if visible:
+		_startGame(true)
+		
+func _startGame(is2P: bool):
+	var settings = _getGameSettings(is2P)
+	game_start.emit(settings)
+
+func _on_VBoxContainer_visibility_changed():
+	if arcade_mode:
+		# when menu become visible, default to slider focused
+		$VBoxContainer/rounds/HSlider.grab_focus()
+	else:
+		# when menu become visible, default to 1p start focused
+		$VBoxContainer/buttons/start1P.grab_focus()
+"
+
+[sub_resource type="GDScript" id="2"]
+script/source = "extends Label
+
+func _on_HSlider_value_changed(value):
+	text = str(value)
+"
+
+[node name="Menu" type="PanelContainer"]
+offset_left = 120.0
+offset_top = 300.0
+offset_right = 440.0
+offset_bottom = 462.0
+size_flags_horizontal = 2
+size_flags_vertical = 2
+theme = SubResource("Theme_ya2l1")
+script = SubResource("1")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="rounds" type="HBoxContainer" parent="VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="VBoxContainer/rounds"]
+layout_mode = 2
+text = "Rounds: "
+
+[node name="indicator" type="Label" parent="VBoxContainer/rounds"]
+layout_mode = 2
+text = "10"
+script = SubResource("2")
+
+[node name="HSlider" type="HSlider" parent="VBoxContainer/rounds"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 1
+min_value = 1.0
+max_value = 10.0
+value = 10.0
+rounded = true
+
+[node name="boost" type="HBoxContainer" parent="VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="VBoxContainer/boost"]
+layout_mode = 2
+text = "Option:"
+
+[node name="CheckButton" type="CheckButton" parent="VBoxContainer/boost"]
+layout_mode = 2
+size_flags_horizontal = 3
+focus_neighbor_top = NodePath("../../rounds/HSlider")
+
+[node name="guns" type="HBoxContainer" parent="VBoxContainer"]
+visible = false
+layout_mode = 2
+
+[node name="Label" type="Label" parent="VBoxContainer/guns"]
+layout_mode = 2
+text = "Guns: "
+
+[node name="CheckButton" type="CheckButton" parent="VBoxContainer/guns"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="buttons" type="HBoxContainer" parent="VBoxContainer"]
+visible = false
+layout_mode = 2
+
+[node name="start1P" type="Button" parent="VBoxContainer/buttons"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+text = "Start 1P"
+
+[node name="start2P" type="Button" parent="VBoxContainer/buttons"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+text = "Start 2P"
+
+[node name="p1p2text" type="HBoxContainer" parent="VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="VBoxContainer/p1p2text"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Press  1 or 2 Player"
+horizontal_alignment = 1
+
+[node name="1or2player" parent="." instance=ExtResource("2")]
+position = Vector2(46, 178.228)
+scale = Vector2(0.5, 0.5)
+
+[connection signal="visibility_changed" from="VBoxContainer" to="." method="_on_VBoxContainer_visibility_changed"]
+[connection signal="value_changed" from="VBoxContainer/rounds/HSlider" to="VBoxContainer/rounds/indicator" method="_on_HSlider_value_changed"]
+[connection signal="pressed" from="VBoxContainer/buttons/start1P" to="." method="_on_start1P_pressed"]
+[connection signal="visibility_changed" from="VBoxContainer/buttons/start1P" to="." method="_on_start1P_visibility_changed"]
+[connection signal="pressed" from="VBoxContainer/buttons/start2P" to="." method="_on_start2P_pressed"]

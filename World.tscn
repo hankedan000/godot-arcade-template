@@ -1,0 +1,346 @@
+[gd_scene load_steps=10 format=3 uid="uid://cbc2xsj8mrsyw"]
+
+[ext_resource type="PackedScene" uid="uid://bm1ykpikg5pyy" path="res://player/player.tscn" id="1"]
+[ext_resource type="FontFile" path="res://Quantico30.tres" id="2"]
+[ext_resource type="PackedScene" uid="uid://dnfbdblu617du" path="res://addons/arcade/scenes/ui/control_panel/HowToControl.tscn" id="3"]
+[ext_resource type="PackedScene" uid="uid://nnaj0fpgrduf" path="res://player_panel/player_panel.tscn" id="4"]
+[ext_resource type="PackedScene" uid="uid://snn0wy3tm564" path="res://Menu.tscn" id="5"]
+[ext_resource type="PackedScene" path="res://GameSummary.tscn" id="6"]
+
+[sub_resource type="GDScript" id="1"]
+script/source = "extends ColorRect
+
+enum GameState {
+	eNewGame,eWaitForNewGame,eRoundBegin,eWaitForSpawn,eCountDown,ePlay,eRoundOver,eWaitForReplay,eGameOver}
+
+var gs = GameState.eNewGame
+var roundsToPlay = 3
+var currRound = 1
+var p1PressedKey = false
+var p2PressedKey = false
+var is2PlayerGame = false
+var p1Score = 0
+var p2Score = 0
+
+@onready var p1_panel: PlayerPanel = $p1Panel
+@onready var p2_panel: PlayerPanel = $p2Panel
+
+func setLabels(text: String) -> void:
+	setLabelVisible(true)
+	$p1Label.set_text(text)
+	$p2Label.set_text(text)
+			
+func setLabelVisible(new_visible: bool) -> void:
+	$p1Label.visible = new_visible
+	$p2Label.visible = new_visible
+	
+func _input(_event) -> void:
+	var p1Actions = [\"ui_up\",\"ui_down\",\"ui_left\",\"ui_right\",\"ui_accept\"]
+	var p2Actions = [\"p2_up\",\"p2_down\",\"p2_left\",\"p2_right\",\"p2_button\"]
+	
+	# quit the game when escape is pressed
+	if Input.is_action_pressed(\"ui_cancel\"):
+		get_tree().quit()
+	
+	for p1Action in p1Actions:
+		if Input.is_action_pressed(p1Action):
+			p1PressedKey = true
+			break
+			
+	for p2Action in p2Actions:
+		if Input.is_action_pressed(p2Action):
+			p2PressedKey = true
+			break
+	
+func _process(_delta) -> void:
+	match(gs):
+		GameState.eNewGame:
+			# configure some things for arcade mode
+			$p1Menu.setArcadeMode(TheArcade.is_arcade_mode())
+			
+			$p1Menu.visible = true
+			$player.visible = false
+			$player2.visible = false
+			$p1Label.visible = false
+			$p2Label.visible = false
+			$GameSummary.visible = false
+			$GameSummary2.visible = false
+			currRound = 1
+			p1_panel.setNumRounds(0)
+			p2_panel.setNumRounds(0)
+			p1_panel.setBoostingEnabled(false)
+			p2_panel.setBoostingEnabled(false)
+			p1PressedKey = false
+			p2PressedKey = false
+			p1Score = 0
+			p2Score = 0
+			
+			gs = GameState.eWaitForNewGame
+			
+		GameState.eWaitForNewGame:
+			p1PressedKey = false
+			p2PressedKey = false
+			
+		GameState.eWaitForSpawn:
+			var firstRound = currRound == 1
+			# prevent players from changing direction while
+			$player.setDisableUserInput(true)
+			$player2.setDisableUserInput(true)
+			
+			if not is2PlayerGame:
+				p2PressedKey = true
+				
+			# show how to play graphic
+			$p1HowTo.visible = firstRound and TheArcade.is_arcade_mode() and not p1PressedKey
+			$p2HowTo.visible = firstRound and TheArcade.is_arcade_mode() and not p2PressedKey
+			
+			$p1Menu.visible = false
+			setLabels(\"Round %d\\nPress button to enter play!\" % currRound)
+			$p1Label.visible = not p1PressedKey
+			$p2Label.visible = not p2PressedKey
+			$player.visible = p1PressedKey
+			$player2.visible = p2PressedKey
+				
+			if p1PressedKey and p2PressedKey:
+				gs = GameState.eRoundBegin
+			
+		GameState.eRoundBegin:
+			p1PressedKey = false
+			p2PressedKey = false
+			
+			if currRound > roundsToPlay:
+				gs = GameState.eGameOver
+			else:
+				gs = GameState.eCountDown
+				$count_down.start(3)
+			
+		GameState.eCountDown:
+			setLabels(str(int($count_down.time_left) + 1))
+			
+		GameState.ePlay:
+			setLabelVisible(false)
+			
+		GameState.eRoundOver:
+			# stop both player from moving
+			$player.setStopped(true)
+			$player2.setStopped(true)
+			
+			# star the timer to begin replay
+			$replay.start()
+			
+			# TODO figure out who won the round
+			var whoWon = 1
+			p1_panel.setWin(currRound,whoWon)
+			p2_panel.setWin(currRound,whoWon)
+			
+			if whoWon == 1:
+				p1Score += 1
+			elif whoWon == 2:
+				p2Score += 1
+			
+			gs = GameState.eWaitForReplay
+			
+		GameState.eWaitForReplay:
+			pass
+			
+		GameState.eGameOver:
+			$GameSummary.setScores(p1Score,p2Score)
+			$GameSummary2.setScores(p1Score,p2Score)
+			$GameSummary.visible = true
+			$GameSummary2.visible = true
+			
+			if p1PressedKey or p2PressedKey:
+				gs = GameState.eNewGame
+
+func _on_replay_timeout():
+	currRound += 1
+	gs = GameState.eRoundBegin
+
+func _on_count_down_timeout():
+	$player.setStopped(false)
+	$player2.setStopped(false)
+	
+	# allow players to control again
+	$player.setDisableUserInput(false)
+	$player2.setDisableUserInput(not is2PlayerGame)
+	
+	gs = GameState.ePlay
+
+func _on_p1Menu_game_start(settings):
+	
+	# handle number of rounds
+	roundsToPlay = settings.numberOfRounds
+	p1_panel.setNumRounds(roundsToPlay)
+	p2_panel.setNumRounds(roundsToPlay)
+	p1_panel.setBoostingEnabled(true)
+	p2_panel.setBoostingEnabled(true)
+	p1_panel.setBoostPercent(100.0)
+	p2_panel.setBoostPercent(100.0)
+	
+	# handle 1 vs 2 player mode
+	is2PlayerGame = settings.isTwoPlayer
+		
+	gs = GameState.eWaitForSpawn
+"
+
+[sub_resource type="GDScript" id="2"]
+script/source = "extends StaticBody2D
+
+@export var tin: int = 0
+@export var tout: int = 0
+var thalf : int = 0
+var shape : RectangleShape2D = null
+var shapeowner
+
+func _ready():
+	thalf = int((tin + tout) / 2.0)
+	var ref = $ref.get_rect().size
+	var refPos = $ref.get_rect().position
+	for extpos in [
+			[Vector2(thalf, ref.y/2), Vector2(tin - thalf, ref.y/2)],         # left
+			[Vector2(thalf, ref.y/2), Vector2(ref.x + thalf - tin, ref.y/2)], # right
+			[Vector2(ref.x/2, thalf), Vector2(ref.x/2, tin - thalf)],         # top
+			[Vector2(ref.x/2, thalf), Vector2(ref.x/2, ref.y + thalf - tin)], # bottom
+			]:
+		shape = RectangleShape2D.new()
+		shape.extents = extpos[0]
+		shapeowner = create_shape_owner(self)
+		shape_owner_set_transform(shapeowner, Transform2D(0, refPos + extpos[1]))
+		shape_owner_add_shape(shapeowner, shape)
+"
+
+[sub_resource type="StyleBoxFlat" id="3"]
+bg_color = Color(0.211765, 0.211765, 0.211765, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.490196, 0.490196, 0.490196, 1)
+
+[node name="World" type="ColorRect"]
+offset_right = 600.0
+offset_bottom = 800.0
+color = Color(0.211765, 0.211765, 0.211765, 1)
+script = SubResource("1")
+
+[node name="walls" type="StaticBody2D" parent="."]
+collision_mask = 0
+script = SubResource("2")
+tout = 50
+
+[node name="ref" type="Panel" parent="walls"]
+offset_top = 50.0
+offset_right = 600.0
+offset_bottom = 750.0
+theme_override_styles/panel = SubResource("3")
+
+[node name="player" parent="." instance=ExtResource("1")]
+position = Vector2(298, 650)
+player_fill = Color(0.0509804, 0.482353, 0.831373, 1)
+isPlayer1 = true
+
+[node name="player2" parent="." instance=ExtResource("1")]
+position = Vector2(301, 150)
+rotation = 3.14159
+player_fill = Color(0.862745, 0.141176, 0.364706, 1)
+
+[node name="replay" type="Timer" parent="."]
+wait_time = 2.0
+one_shot = true
+
+[node name="p1Label" type="Label" parent="."]
+visible = false
+layout_mode = 0
+offset_top = 600.0
+offset_right = 600.0
+offset_bottom = 700.0
+theme_override_colors/font_color = Color(0.788235, 0.788235, 0.788235, 1)
+theme_override_fonts/font = ExtResource("2")
+text = "Say something to player 1"
+horizontal_alignment = 1
+
+[node name="p1HowTo" parent="." instance=ExtResource("3")]
+visible = false
+position = Vector2(186, 465.474)
+
+[node name="p2HowTo" parent="." instance=ExtResource("3")]
+visible = false
+position = Vector2(424.5, 340)
+rotation = 3.14159
+isPlayer2 = true
+
+[node name="p2Label" type="Label" parent="."]
+visible = false
+layout_mode = 0
+offset_left = 600.0
+offset_top = 200.0
+offset_right = 1200.0
+offset_bottom = 300.0
+rotation = 180.0
+theme_override_colors/font_color = Color(0.788235, 0.788235, 0.788235, 1)
+theme_override_fonts/font = ExtResource("2")
+text = "Say something to player 2"
+horizontal_alignment = 1
+
+[node name="count_down" type="Timer" parent="."]
+one_shot = true
+
+[node name="p1Panel" parent="." instance=ExtResource("4")]
+layout_mode = 1
+anchors_preset = 0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_top = 750.0
+offset_right = 600.0
+offset_bottom = 800.0
+grow_horizontal = 1
+grow_vertical = 1
+
+[node name="p2Panel" parent="." instance=ExtResource("4")]
+layout_mode = 0
+anchors_preset = 0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = 600.0
+offset_top = 50.0
+offset_right = 1200.0
+offset_bottom = 100.0
+grow_horizontal = 1
+grow_vertical = 1
+rotation = 3.14159
+is_player1 = false
+
+[node name="p1Menu" parent="." instance=ExtResource("5")]
+visible = false
+layout_mode = 0
+offset_left = 140.0
+offset_top = 310.0
+offset_right = 460.0
+offset_bottom = 485.0
+
+[node name="GameSummary" parent="." instance=ExtResource("6")]
+visible = false
+layout_mode = 0
+offset_left = 169.242
+offset_top = 484.76
+offset_right = 431.242
+offset_bottom = 660.76
+p1fill = Color(0.0509804, 0.482353, 0.831373, 1)
+p2fill = Color(0.862745, 0.141176, 0.364706, 1)
+
+[node name="GameSummary2" parent="." instance=ExtResource("6")]
+visible = false
+layout_mode = 0
+offset_left = 431.242
+offset_top = 300.0
+offset_right = 693.242
+offset_bottom = 476.0
+rotation = 180.0
+p1fill = Color(0.0509804, 0.482353, 0.831373, 1)
+p2fill = Color(0.862745, 0.141176, 0.364706, 1)
+
+[connection signal="timeout" from="replay" to="." method="_on_replay_timeout"]
+[connection signal="timeout" from="count_down" to="." method="_on_count_down_timeout"]
+[connection signal="game_start" from="p1Menu" to="." method="_on_p1Menu_game_start"]
