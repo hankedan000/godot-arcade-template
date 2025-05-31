@@ -1,0 +1,171 @@
+[gd_scene load_steps=10 format=3 uid="uid://cbc2xsj8mrsyw"]
+
+[ext_resource type="Script" path="res://world.gd" id="1_a3hnb"]
+[ext_resource type="PackedScene" uid="uid://bm1ykpikg5pyy" path="res://scenes/player/player.tscn" id="2_lp7g3"]
+[ext_resource type="FontFile" path="res://addons/arcade/assets/fonts/Quantico30.tres" id="3_p5fh2"]
+[ext_resource type="PackedScene" uid="uid://dnfbdblu617du" path="res://addons/arcade/scenes/ui/control_panel/HowToControl.tscn" id="4_vtoy7"]
+[ext_resource type="PackedScene" uid="uid://nnaj0fpgrduf" path="res://scenes/ui/player_panel/player_panel.tscn" id="5_2e1dv"]
+[ext_resource type="PackedScene" uid="uid://snn0wy3tm564" path="res://scenes/ui/main_menu/main_menu.tscn" id="6_0nm62"]
+[ext_resource type="PackedScene" uid="uid://b6cj776w0uoxh" path="res://scenes/ui/game_summary/game_summary.tscn" id="7_qqwm2"]
+
+[sub_resource type="GDScript" id="2"]
+script/source = "extends StaticBody2D
+
+@export var tin: int = 0
+@export var tout: int = 0
+var thalf : int = 0
+var shape : RectangleShape2D = null
+var shapeowner
+
+func _ready():
+	thalf = int((tin + tout) / 2.0)
+	var ref = $ref.get_rect().size
+	var refPos = $ref.get_rect().position
+	for extpos in [
+			[Vector2(thalf, ref.y/2), Vector2(tin - thalf, ref.y/2)],         # left
+			[Vector2(thalf, ref.y/2), Vector2(ref.x + thalf - tin, ref.y/2)], # right
+			[Vector2(ref.x/2, thalf), Vector2(ref.x/2, tin - thalf)],         # top
+			[Vector2(ref.x/2, thalf), Vector2(ref.x/2, ref.y + thalf - tin)], # bottom
+			]:
+		shape = RectangleShape2D.new()
+		shape.extents = extpos[0]
+		shapeowner = create_shape_owner(self)
+		shape_owner_set_transform(shapeowner, Transform2D(0, refPos + extpos[1]))
+		shape_owner_add_shape(shapeowner, shape)
+"
+
+[sub_resource type="StyleBoxFlat" id="3"]
+bg_color = Color(0.211765, 0.211765, 0.211765, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.490196, 0.490196, 0.490196, 1)
+
+[node name="World" type="ColorRect"]
+offset_right = 600.0
+offset_bottom = 800.0
+color = Color(0.211765, 0.211765, 0.211765, 1)
+script = ExtResource("1_a3hnb")
+
+[node name="walls" type="StaticBody2D" parent="."]
+collision_mask = 0
+script = SubResource("2")
+tout = 50
+
+[node name="ref" type="Panel" parent="walls"]
+offset_top = 50.0
+offset_right = 600.0
+offset_bottom = 750.0
+theme_override_styles/panel = SubResource("3")
+
+[node name="player" parent="." instance=ExtResource("2_lp7g3")]
+position = Vector2(298, 650)
+player_fill = Color(0.0509804, 0.482353, 0.831373, 1)
+is_player1 = true
+
+[node name="player2" parent="." instance=ExtResource("2_lp7g3")]
+position = Vector2(301, 150)
+rotation = 3.14159
+player_fill = Color(0.862745, 0.141176, 0.364706, 1)
+
+[node name="replay" type="Timer" parent="."]
+wait_time = 2.0
+one_shot = true
+
+[node name="p1Label" type="Label" parent="."]
+visible = false
+layout_mode = 0
+offset_top = 600.0
+offset_right = 600.0
+offset_bottom = 700.0
+theme_override_colors/font_color = Color(0.788235, 0.788235, 0.788235, 1)
+theme_override_fonts/font = ExtResource("3_p5fh2")
+text = "Say something to player 1"
+horizontal_alignment = 1
+
+[node name="p1HowTo" parent="." instance=ExtResource("4_vtoy7")]
+visible = false
+position = Vector2(186, 465.474)
+
+[node name="p2HowTo" parent="." instance=ExtResource("4_vtoy7")]
+visible = false
+position = Vector2(424.5, 340)
+rotation = 3.14159
+isPlayer2 = true
+
+[node name="p2Label" type="Label" parent="."]
+visible = false
+layout_mode = 0
+offset_left = 600.0
+offset_top = 200.0
+offset_right = 1200.0
+offset_bottom = 300.0
+rotation = 180.0
+theme_override_colors/font_color = Color(0.788235, 0.788235, 0.788235, 1)
+theme_override_fonts/font = ExtResource("3_p5fh2")
+text = "Say something to player 2"
+horizontal_alignment = 1
+
+[node name="count_down" type="Timer" parent="."]
+one_shot = true
+
+[node name="p1Panel" parent="." instance=ExtResource("5_2e1dv")]
+layout_mode = 1
+anchors_preset = 0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_top = 750.0
+offset_right = 600.0
+offset_bottom = 800.0
+grow_horizontal = 1
+grow_vertical = 1
+
+[node name="p2Panel" parent="." instance=ExtResource("5_2e1dv")]
+layout_mode = 0
+anchors_preset = 0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = 600.0
+offset_top = 50.0
+offset_right = 1200.0
+offset_bottom = 100.0
+grow_horizontal = 1
+grow_vertical = 1
+rotation = 3.14159
+is_player1 = false
+
+[node name="p1Menu" parent="." instance=ExtResource("6_0nm62")]
+visible = false
+layout_mode = 0
+offset_left = 140.0
+offset_top = 310.0
+offset_right = 460.0
+offset_bottom = 485.0
+
+[node name="GameSummary" parent="." instance=ExtResource("7_qqwm2")]
+visible = false
+layout_mode = 0
+offset_left = 169.242
+offset_top = 484.76
+offset_right = 431.242
+offset_bottom = 660.76
+p1_fill = Color(0.0509804, 0.482353, 0.831373, 1)
+p2_fill = Color(0.862745, 0.141176, 0.364706, 1)
+
+[node name="GameSummary2" parent="." instance=ExtResource("7_qqwm2")]
+visible = false
+layout_mode = 0
+offset_left = 431.242
+offset_top = 300.0
+offset_right = 693.242
+offset_bottom = 476.0
+rotation = 180.0
+p1_fill = Color(0.0509804, 0.482353, 0.831373, 1)
+p2_fill = Color(0.862745, 0.141176, 0.364706, 1)
+
+[connection signal="timeout" from="replay" to="." method="_on_replay_timeout"]
+[connection signal="timeout" from="count_down" to="." method="_on_count_down_timeout"]
+[connection signal="game_start" from="p1Menu" to="." method="_on_p1Menu_game_start"]

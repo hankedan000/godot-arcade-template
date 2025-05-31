@@ -1,7 +1,7 @@
 [gd_scene load_steps=5 format=3 uid="uid://bm1ykpikg5pyy"]
 
-[ext_resource type="Material" path="res://player/explosion_material.tres" id="1"]
-[ext_resource type="Script" path="res://player/player.gd" id="1_a7thm"]
+[ext_resource type="Material" path="res://scenes/player/explosion_material.tres" id="1"]
+[ext_resource type="Script" path="res://scenes/player/player.gd" id="1_a7thm"]
 [ext_resource type="PackedScene" uid="uid://co5u2hl67dtcj" path="res://addons/arcade/scenes/arcade_player_input/ArcadePlayerInput.tscn" id="2"]
 
 [sub_resource type="RectangleShape2D" id="2"]
