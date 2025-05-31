@@ -1,3 +1,6 @@
 [submodule "addons/arcade"]
 	path = addons/arcade
 	url = https://github.com/hankedan000/godot-arcade-addon.git
+[submodule "addons/gd_basics"]
+	path = addons/gd_basics
+	url = https://github.com/hankedan000/godot-basics-addon.git
