@@ -11,6 +11,7 @@ func _ready():
 	cp_1or2_player.visible = arcade_mode
 	$VBoxContainer/p1p2text.visible = arcade_mode
 	$VBoxContainer/buttons.visible = not arcade_mode
+	size = Vector2() # size to minimum
 
 func _input(event):
 	if TheArcade.is_arcade_mode() and visible:

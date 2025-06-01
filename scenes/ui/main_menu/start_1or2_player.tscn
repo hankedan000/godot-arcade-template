@@ -1,0 +1,25 @@
+[gd_scene load_steps=2 format=3 uid="uid://c80wpbemqd51e"]
+
+[ext_resource type="PackedScene" uid="uid://dnfbdblu617du" path="res://addons/arcade/scenes/ui/control_panel/control_panel.tscn" id="1_bdr32"]
+
+[node name="Start1or2Player" instance=ExtResource("1_bdr32")]
+
+[node name="Joystick" parent="." index="1"]
+frame_progress = 0.275909
+
+[node name="Fire" parent="." index="2"]
+frame_progress = 0.762025
+
+[node name="P1Start" parent="." index="3"]
+animation = &"press_release"
+frame_progress = 0.427505
+
+[node name="P1StartLabel" parent="P1Start" index="0"]
+text = "1P"
+
+[node name="P2Start" parent="." index="4"]
+animation = &"release_press"
+frame_progress = 0.281517
+
+[node name="P2StartLabel" parent="P2Start" index="0"]
+text = "2P"

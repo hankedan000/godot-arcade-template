@@ -3,7 +3,7 @@
 [ext_resource type="Script" path="res://world.gd" id="1_a3hnb"]
 [ext_resource type="PackedScene" uid="uid://bm1ykpikg5pyy" path="res://scenes/player/player.tscn" id="2_lp7g3"]
 [ext_resource type="FontFile" path="res://addons/arcade/assets/fonts/Quantico30.tres" id="3_p5fh2"]
-[ext_resource type="PackedScene" uid="uid://dnfbdblu617du" path="res://addons/arcade/scenes/ui/control_panel/HowToControl.tscn" id="4_vtoy7"]
+[ext_resource type="PackedScene" uid="uid://cw57wytnx181c" path="res://scenes/ui/how_to_play/how_to_play.tscn" id="4_vd8cc"]
 [ext_resource type="PackedScene" uid="uid://nnaj0fpgrduf" path="res://scenes/ui/player_panel/player_panel.tscn" id="5_2e1dv"]
 [ext_resource type="PackedScene" uid="uid://snn0wy3tm564" path="res://scenes/ui/main_menu/main_menu.tscn" id="6_0nm62"]
 [ext_resource type="PackedScene" uid="uid://b6cj776w0uoxh" path="res://scenes/ui/game_summary/game_summary.tscn" id="7_qqwm2"]
@@ -84,15 +84,15 @@ theme_override_fonts/font = ExtResource("3_p5fh2")
 text = "Say something to player 1"
 horizontal_alignment = 1
 
-[node name="p1HowTo" parent="." instance=ExtResource("4_vtoy7")]
+[node name="p1HowTo" parent="." instance=ExtResource("4_vd8cc")]
 visible = false
-position = Vector2(186, 465.474)
+position = Vector2(186, 465)
 
-[node name="p2HowTo" parent="." instance=ExtResource("4_vtoy7")]
+[node name="p2HowTo" parent="." instance=ExtResource("4_vd8cc")]
 visible = false
-position = Vector2(424.5, 340)
+position = Vector2(423, 340)
 rotation = 3.14159
-isPlayer2 = true
+is_player2 = true
 
 [node name="p2Label" type="Label" parent="."]
 visible = false

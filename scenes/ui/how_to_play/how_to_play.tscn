@@ -1,0 +1,26 @@
+[gd_scene load_steps=2 format=3 uid="uid://cw57wytnx181c"]
+
+[ext_resource type="PackedScene" uid="uid://dnfbdblu617du" path="res://addons/arcade/scenes/ui/control_panel/control_panel.tscn" id="1_6ml0n"]
+
+[node name="HowToPlay" instance=ExtResource("1_6ml0n")]
+
+[node name="Joystick" parent="." index="1"]
+animation = &"left_right_up_down"
+frame_progress = 0.529027
+
+[node name="Fire" parent="." index="2"]
+animation = &"release_press"
+frame_progress = 0.708496
+
+[node name="P1Start" parent="." index="3"]
+frame_progress = 0.783007
+
+[node name="P2Start" parent="." index="4"]
+frame_progress = 0.551388
+
+[node name="JoyLabel" parent="." index="5"]
+text = "Steer
+"
+
+[node name="FireLabel" parent="." index="6"]
+text = "Boost"
