@@ -1,5 +1,5 @@
 class_name PlayerPanel
-extends Panel
+extends PanelContainer
 
 @export var empty_fill = Color(0.7,0.7,0.7)
 @export var is_player1 = true

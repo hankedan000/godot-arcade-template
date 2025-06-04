@@ -1,10 +1,17 @@
-[gd_scene load_steps=8 format=3 uid="uid://nnaj0fpgrduf"]
+[gd_scene load_steps=9 format=3 uid="uid://nnaj0fpgrduf"]
 
 [ext_resource type="Script" path="res://scenes/ui/player_panel/player_panel.gd" id="1_ejwk7"]
 [ext_resource type="Theme" uid="uid://ckrcu0sh1ursg" path="res://scenes/ui/player_panel/progress_theme.tres" id="2"]
 [ext_resource type="FontFile" path="res://addons/arcade/assets/fonts/Quantico30.tres" id="2_hav40"]
 [ext_resource type="Texture2D" uid="uid://we8getbieyb6" path="res://addons/arcade/assets/icons/radio_checked.png" id="3_lqmc0"]
 [ext_resource type="Texture2D" uid="uid://bj75dhnee6lyl" path="res://addons/arcade/assets/icons/radio_unchecked.png" id="4_07dv2"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ww7w6"]
+content_margin_left = 4.0
+content_margin_top = 4.0
+content_margin_right = 4.0
+content_margin_bottom = 4.0
+bg_color = Color(0.180392, 0.180392, 0.180392, 1)
 
 [sub_resource type="Theme" id="Theme_ya2l1"]
 Button/fonts/font = ExtResource("2_hav40")
@@ -28,24 +35,21 @@ func setColor(color: Color):
 	theme.get(\"ProgressBar/styles/fg\").bg_color = color
 "
 
-[node name="PlayerPanel" type="Panel"]
+[node name="PlayerPanel" type="PanelContainer"]
 custom_minimum_size = Vector2(600, 50)
 anchors_preset = -1
 anchor_top = 0.937
 anchor_right = 1.0
 anchor_bottom = 1.0
 offset_top = 0.399963
+offset_bottom = -6.10352e-05
 grow_horizontal = 2
 grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_ww7w6")
 script = ExtResource("1_ejwk7")
 
 [node name="HBoxContainer" type="HBoxContainer" parent="."]
-layout_mode = 0
-anchor_top = 0.5
-anchor_bottom = 0.5
-offset_top = -25.0
-offset_right = 600.0
-offset_bottom = 27.0
+layout_mode = 2
 
 [node name="leftHalf" type="HBoxContainer" parent="HBoxContainer"]
 layout_mode = 2
